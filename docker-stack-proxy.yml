@@ -1,0 +1,34 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.2
+    networks:
+      - ocr-net
+    command:
+    - "--providers.docker"
+    - "--providers.docker.exposedbydefault=false"
+    - "--entryPoints.websecure.address=:443"
+    - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+    - "--certificatesresolvers.myresolver.acme.email=justin@eremos.cloud"
+    - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    - "--entrypoints.web.address=:80"
+    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    ports:
+      - mode: host
+        target: 80
+        published: 80
+        protocol: tcp
+      - mode: host
+        target: 443
+        published: 443
+        protocol: tcp
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+      
+volumes:
+  letsencrypt:
+
+networks:
+  ocr-net:
+    external: true
