@@ -1,18 +1,32 @@
+auth_enabled: false
+
 server:
-  http_listen_port: 9080
-  grpc_listen_port: 0
+  http_listen_port: 3100
 
-positions:
-  filename: /tmp/positions.yaml
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  chunk_idle_period: 5m
+  chunk_retain_period: 30s
 
-clients:
-  - url: http://loki:3100/loki/api/v1/push
+schema_config:
+  configs:
+    - from: 2022-01-01
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
 
-scrape_configs:
-  - job_name: system
-    static_configs:
-      - targets:
-          - "localhost"
-        labels:
-          job: varlogs
-          __path__: /var/log/*log
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/cache
+    shared_store: filesystem
+
+limits_config:
+  retention_period: 30d

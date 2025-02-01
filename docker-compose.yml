@@ -6,32 +6,39 @@ services:
     ports:
       - 3100:3100
     volumes:
-      - ./configs/loki-config.yml:/etc/loki/loki-config.yaml
-      - ./loki-data:/tmp/loki
+      - ./configs/loki-config.yml:/etc/loki/local-config.yml
   promtail:
     image: grafana/promtail:latest
     networks:
       - ocr-net
+    command: -config.file=/etc/promtail/docker-config.yml
+    depends_on:
+      - loki
     volumes:
+      - ./configs/promtail-config.yml:/etc/promtail/docker-config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./configs/promtail-config.yml:/etc/promtail/promtail-config.yaml
   grafana:
     image: grafana/grafana
-    depends_on:
-    - loki
     networks:
       - ocr-net
     ports:
       - 3000:3000
-    labels:
-      - "traefik.http.routers.web.rule=Host(`eremos.cloud`) && PathPrefix(`/admin`)"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      - "traefik.http.routers.web.entrypoints=websecure"
-      - "traefik.http.routers.web.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.admin-ip.ipallowlist.sourcerange=192.168.1.14"
+    volumes:
+      - ./configs/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    # labels:
+    #   - "traefik.http.routers.web.rule=Host(`eremos.cloud`) && PathPrefix(`/admin`)"
+    #   - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    #   - "traefik.http.routers.web.entrypoints=websecure"
+    #   - "traefik.http.routers.web.tls.certresolver=myresolver"
+    #   - "traefik.http.middlewares.admin-ip.ipallowlist.sourcerange=192.168.1.14"
 
 volumes:
-  loki-data:
+  grafana-data:
   configs:
 
 networks:
