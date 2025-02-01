@@ -23,19 +23,19 @@ services:
     networks:
       - ocr-net
     ports:
-      - 3000:3000
+      - 3200:3000
     volumes:
       - ./configs/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-    # labels:
-    #   - "traefik.http.routers.web.rule=Host(`eremos.cloud`) && PathPrefix(`/admin`)"
-    #   - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-    #   - "traefik.http.routers.web.entrypoints=websecure"
-    #   - "traefik.http.routers.web.tls.certresolver=myresolver"
-    #   - "traefik.http.middlewares.admin-ip.ipallowlist.sourcerange=192.168.1.14"
+    labels:
+      - "traefik.http.routers.web.rule=Host(`eremos.cloud`) && PathPrefix(`/admin`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=myresolver"
+      #- "traefik.http.middlewares.admin-ip.ipallowlist.sourcerange=${PUBLIC_IP}"
 
 volumes:
   grafana-data:
