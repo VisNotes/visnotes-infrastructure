@@ -1,0 +1,33 @@
+services:
+  auth:
+    image: quay.io/keycloak/keycloak:24.0
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HTTP_RELATIVE_PATH: /auth  # Keycloak serves under /auth
+      KC_HOSTNAME_PORT: 7080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: info
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7080/health/ready"]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: ["start-dev", "--http-port", "7080", "--https-port", "7443"]
+    labels:
+      - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/auth`)" # Change soon
+      - "traefik.http.services.auth.loadbalancer.server.port=7080"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls.certresolver=myresolver"
+    ports:
+      - "7080:7080"
+      - "7443:7443"
+    networks:
+      - ocr-net
+
+networks:
+  ocr-net:
+    external: true
